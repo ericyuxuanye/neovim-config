@@ -50,7 +50,7 @@ require("lazy").setup({
     },
     {
       "L3MON4D3/LuaSnip",
-      dependencies = { "saadparwaiz1/cmp_luasnip", "mireq/luasnip-snippets" },
+      dependencies = { "mireq/luasnip-snippets" },
       -- follow latest release.
       -- version = "<CurrentMajor>.*",
       -- install jsregexp (optional!).
@@ -264,150 +264,187 @@ require("lazy").setup({
       dependencies = { "nvim-tree/nvim-web-devicons" },
     },
     {
-      "hrsh7th/nvim-cmp",
-      event = { "InsertEnter", "CmdLineEnter" },
-      dependencies = {
-        "hrsh7th/cmp-cmdline",
-        "hrsh7th/cmp-buffer",
-        "hrsh7th/cmp-nvim-lsp",
-        "hrsh7th/cmp-omni",
-        "petertriho/cmp-git",
-        "hrsh7th/cmp-path",
-      },
-      config = function()
-        local has_words_before = function()
-          local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-          return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
-        end
-
-        local cmp = require("cmp")
-        local lspkind = require("lspkind")
-        -- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
-        cmp.setup({
-          formatting = {
-            format = lspkind.cmp_format({
-              mode = "symbol_text",
-            }),
-          },
-          snippet = {
-            -- expand = function(args)
-            --     vim.fn["UltiSnips#Anon"](args.body)
-            -- end
-            expand = function(args)
-              require("luasnip").lsp_expand(args.body)
-            end,
-          },
-          -- window = {
-          -- 	documentation = cmp.config.window.bordered(),
-          -- 	completion = cmp.config.window.bordered(),
-          -- },
-          mapping = {
-            ["<C-Space>"] = cmp.mapping.confirm({
-              behavior = cmp.ConfirmBehavior.Insert,
-              select = true,
-            }),
-            ["<Tab>"] = cmp.mapping(function(fallback)
-              if cmp.visible() then
-                cmp.select_next_item()
-              elseif has_words_before() then
-                cmp.complete()
-              else
-                fallback()
-              end
-            end, { "i", "s" }),
-            ["<S-Tab>"] = cmp.mapping(function(fallback)
-              if cmp.visible() then
-                cmp.select_prev_item()
-              else
-                fallback()
-              end
-            end, { "i", "s" }),
-            ["<C-e>"] = cmp.mapping.abort(),
-            ["<CR>"] = cmp.mapping.confirm({ select = false }),
-            ["<C-b>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c" }),
-            ["<C-f>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
-            ["<Down>"] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }), { "i" }),
-            ["<Up>"] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }), { "i" }),
-          },
-          sources = cmp.config.sources({
-            { name = "nvim_lsp" },
-            -- {name = "ultisnips"}, -- For ultisnips users.
-            { name = "luasnip" },
-            { name = "nvim_lsp_signature_help" },
-          }, {
-            { name = "buffer" },
-            { name = "path" },
-          }),
-        })
-
-        -- Set configuration for specific filetype.
-        cmp.setup.filetype("gitcommit", {
-          sources = cmp.config.sources({
-            { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-          }, {
-            { name = "buffer" },
-            { name = "path" },
-          }),
-        })
-
-        -- tex files use omni
-        cmp.setup.filetype("tex", {
-          formatting = {
-            format = function(entry, vim_item)
-              vim_item.menu = ({
-                omni = (vim.inspect(vim_item.menu):gsub('%"', "")),
-                buffer = "[Buffer]",
-                -- formatting for other sources
-              })[entry.source.name]
-              return vim_item
-            end,
-          },
-          sources = cmp.config.sources({
-            { name = "omni" },
-            -- {name = "ultisnips"}
-            { name = "luasnip" },
-          }, {
-            { name = "buffer" },
-            { name = "path" },
-          }),
-        })
-
-        -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
-        cmp.setup.cmdline("/", {
-          mapping = cmp.mapping.preset.cmdline(),
-          sources = {
-            { name = "buffer" },
-          },
-        })
-
-        -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-        cmp.setup.cmdline(":", {
-          mapping = cmp.mapping.preset.cmdline(),
-          sources = cmp.config.sources({
-            { name = "path" },
-          }, {
-            { name = "cmdline" },
-          }),
-        })
-
-        cmp_autopairs = require("nvim-autopairs.completion.cmp")
-        cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-
-        -- local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
-      end,
-    },
-    {
-      "ray-x/lsp_signature.nvim",
+      "saghen/blink.cmp",
+      version = "*",
       event = "InsertEnter",
-      opts = function()
-        require("lsp_signature").on_attach({
-          bind = true,
-          handler_opts = {
-            border = "rounded",
+      opts = {
+        sources = {
+          default = { "lsp", "path", "snippets", "buffer" },
+          per_filetype = {
+            tex = { "omni", "path", "snippets", "buffer" },
           },
-        })
-      end,
+        },
+        keymap = {
+          preset = "enter",
+          ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+          ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+        },
+        completion = {
+          list = {
+            selection = {
+              preselect = false,
+              auto_insert = true,
+            },
+          },
+          documentation = {
+            auto_show = true,
+            auto_show_delay_ms = 500,
+          }
+        },
+        snippets = { preset = "luasnip" },
+        signature = {
+          enabled = true,
+          window = {
+            show_documentation = true,
+          },
+        },
+      },
     },
+    -- {
+    --   "hrsh7th/nvim-cmp",
+    --   event = { "InsertEnter", "CmdLineEnter" },
+    --   dependencies = {
+    --     "hrsh7th/cmp-cmdline",
+    --     "hrsh7th/cmp-buffer",
+    --     "hrsh7th/cmp-nvim-lsp",
+    --     "hrsh7th/cmp-omni",
+    --     "petertriho/cmp-git",
+    --     "hrsh7th/cmp-path",
+    --   },
+    --   config = function()
+    --     local has_words_before = function()
+    --       local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+    --       return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+    --     end
+    --
+    --     local cmp = require("cmp")
+    --     local lspkind = require("lspkind")
+    --     -- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+    --     cmp.setup({
+    --       formatting = {
+    --         format = lspkind.cmp_format({
+    --           mode = "symbol_text",
+    --         }),
+    --       },
+    --       snippet = {
+    --         -- expand = function(args)
+    --         --     vim.fn["UltiSnips#Anon"](args.body)
+    --         -- end
+    --         expand = function(args)
+    --           require("luasnip").lsp_expand(args.body)
+    --         end,
+    --       },
+    --       -- window = {
+    --       -- 	documentation = cmp.config.window.bordered(),
+    --       -- 	completion = cmp.config.window.bordered(),
+    --       -- },
+    --       mapping = {
+    --         ["<C-Space>"] = cmp.mapping.confirm({
+    --           behavior = cmp.ConfirmBehavior.Insert,
+    --           select = true,
+    --         }),
+    --         ["<Tab>"] = cmp.mapping(function(fallback)
+    --           if cmp.visible() then
+    --             cmp.select_next_item()
+    --           elseif has_words_before() then
+    --             cmp.complete()
+    --           else
+    --             fallback()
+    --           end
+    --         end, { "i", "s" }),
+    --         ["<S-Tab>"] = cmp.mapping(function(fallback)
+    --           if cmp.visible() then
+    --             cmp.select_prev_item()
+    --           else
+    --             fallback()
+    --           end
+    --         end, { "i", "s" }),
+    --         ["<C-e>"] = cmp.mapping.abort(),
+    --         ["<CR>"] = cmp.mapping.confirm({ select = false }),
+    --         ["<C-b>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c" }),
+    --         ["<C-f>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
+    --         ["<Down>"] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }), { "i" }),
+    --         ["<Up>"] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }), { "i" }),
+    --       },
+    --       sources = cmp.config.sources({
+    --         { name = "nvim_lsp" },
+    --         -- {name = "ultisnips"}, -- For ultisnips users.
+    --         { name = "luasnip" },
+    --         { name = "nvim_lsp_signature_help" },
+    --       }, {
+    --         { name = "buffer" },
+    --         { name = "path" },
+    --       }),
+    --     })
+    --
+    --     -- Set configuration for specific filetype.
+    --     cmp.setup.filetype("gitcommit", {
+    --       sources = cmp.config.sources({
+    --         { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
+    --       }, {
+    --         { name = "buffer" },
+    --         { name = "path" },
+    --       }),
+    --     })
+    --
+    --     -- tex files use omni
+    --     cmp.setup.filetype("tex", {
+    --       formatting = {
+    --         format = function(entry, vim_item)
+    --           vim_item.menu = ({
+    --             omni = (vim.inspect(vim_item.menu):gsub('%"', "")),
+    --             buffer = "[Buffer]",
+    --             -- formatting for other sources
+    --           })[entry.source.name]
+    --           return vim_item
+    --         end,
+    --       },
+    --       sources = cmp.config.sources({
+    --         { name = "omni" },
+    --         -- {name = "ultisnips"}
+    --         { name = "luasnip" },
+    --       }, {
+    --         { name = "buffer" },
+    --         { name = "path" },
+    --       }),
+    --     })
+    --
+    --     -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
+    --     cmp.setup.cmdline("/", {
+    --       mapping = cmp.mapping.preset.cmdline(),
+    --       sources = {
+    --         { name = "buffer" },
+    --       },
+    --     })
+    --
+    --     -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+    --     cmp.setup.cmdline(":", {
+    --       mapping = cmp.mapping.preset.cmdline(),
+    --       sources = cmp.config.sources({
+    --         { name = "path" },
+    --       }, {
+    --         { name = "cmdline" },
+    --       }),
+    --     })
+    --
+    --     cmp_autopairs = require("nvim-autopairs.completion.cmp")
+    --     cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+    --
+    --     -- local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
+    --   end,
+    -- },
+    -- {
+    --   "ray-x/lsp_signature.nvim",
+    --   event = "InsertEnter",
+    --   opts = function()
+    --     require("lsp_signature").on_attach({
+    --       bind = true,
+    --       handler_opts = {
+    --         border = "rounded",
+    --       },
+    --     })
+    --   end,
+    -- },
     {
       "nvim-treesitter/nvim-treesitter",
       build = ":TSUpdate",
@@ -998,48 +1035,48 @@ lspconfig.basedpyright.setup({
     },
   },
   on_attach = function()
-    local underscore_comparator = function(entry1, entry2)
-      local w1 = string.sub(entry1:get_word(), 1, 1)
-      local w2 = string.sub(entry2:get_word(), 1, 1)
-      if w1 == "_" and w2 ~= "_" then
-        return false
-      end
-      if w1 ~= "_" and w2 == "_" then
-        return true
-      end
-      return nil
-    end
-    local lsp_types = require("cmp.types").lsp
-    local parameter_comparator = function(entry1, entry2)
-      local kind1 = lsp_types.CompletionItemKind[entry1:get_kind()]
-      local kind2 = lsp_types.CompletionItemKind[entry2:get_kind()]
-      local p1 = kind1 == "Variable" and entry1:get_completion_item().label:match("%w*=")
-      local p2 = kind2 == "Variable" and entry2:get_completion_item().label:match("%w*=")
-      if p1 and not p2 then
-        return true
-      end
-      if p2 and not p1 then
-        return false
-      end
-      return nil
-    end
     vim.lsp.inlay_hint.enable(true)
-    local cmp = require("cmp")
-    cmp.setup.filetype("python", {
-      sorting = {
-        comparators = {
-          cmp.config.compare.offset,
-          cmp.config.compare.exact,
-          cmp.config.compare.recently_used,
-          parameter_comparator,
-          underscore_comparator,
-          cmp.config.compare.sort_text,
-          cmp.config.compare.length,
-          cmp.config.compare.order,
-        },
-      },
-    })
   end,
+  --   local underscore_comparator = function(entry1, entry2)
+  --     local w1 = string.sub(entry1:get_word(), 1, 1)
+  --     local w2 = string.sub(entry2:get_word(), 1, 1)
+  --     if w1 == "_" and w2 ~= "_" then
+  --       return false
+  --     end
+  --     if w1 ~= "_" and w2 == "_" then
+  --       return true
+  --     end
+  --     return nil
+  --   end
+  --   local lsp_types = require("cmp.types").lsp
+  --   local parameter_comparator = function(entry1, entry2)
+  --     local kind1 = lsp_types.CompletionItemKind[entry1:get_kind()]
+  --     local kind2 = lsp_types.CompletionItemKind[entry2:get_kind()]
+  --     local p1 = kind1 == "Variable" and entry1:get_completion_item().label:match("%w*=")
+  --     local p2 = kind2 == "Variable" and entry2:get_completion_item().label:match("%w*=")
+  --     if p1 and not p2 then
+  --       return true
+  --     end
+  --     if p2 and not p1 then
+  --       return false
+  --     end
+  --     return nil
+  --   end
+  --   local cmp = require("cmp")
+  --   cmp.setup.filetype("python", {
+  --     sorting = {
+  --       comparators = {
+  --         cmp.config.compare.offset,
+  --         cmp.config.compare.exact,
+  --         cmp.config.compare.recently_used,
+  --         parameter_comparator,
+  --         underscore_comparator,
+  --         cmp.config.compare.sort_text,
+  --         cmp.config.compare.length,
+  --         cmp.config.compare.order,
+  --       },
+  --     },
+  --   })
 })
 -- javascript
 lspconfig.ts_ls.setup({
@@ -1086,21 +1123,21 @@ lspconfig.clangd.setup({
         -- },
       })
       -- cpp files sorting
-      local cmp = require("cmp")
-      cmp.setup.filetype("cpp", {
-        sorting = {
-          comparators = {
-            cmp.config.compare.offset,
-            cmp.config.compare.exact,
-            cmp.config.compare.recently_used,
-            require("clangd_extensions.cmp_scores"),
-            cmp.config.compare.kind,
-            cmp.config.compare.sort_text,
-            cmp.config.compare.length,
-            cmp.config.compare.order,
-          },
-        },
-      })
+      -- local cmp = require("cmp")
+      -- cmp.setup.filetype("cpp", {
+      --   sorting = {
+      --     comparators = {
+      --       cmp.config.compare.offset,
+      --       cmp.config.compare.exact,
+      --       cmp.config.compare.recently_used,
+      --       require("clangd_extensions.cmp_scores"),
+      --       cmp.config.compare.kind,
+      --       cmp.config.compare.sort_text,
+      --       cmp.config.compare.length,
+      --       cmp.config.compare.order,
+      --     },
+      --   },
+      -- })
       cpp_first_time = false
     end
     vim.lsp.inlay_hint.enable(true)
