@@ -694,7 +694,8 @@ require("lazy").setup({
         -- 	return string.format("#%02x%02x%02x", r, g, b)
         -- end
         require("tabby.tabline").set(function(line)
-          local is_first = true
+          local num_wins = #line.api.get_tab_wins(line.api.get_current_tab())
+          local win_no = 0
           return {
             -- {
             --   { '  ', hl = theme.head },
@@ -736,8 +737,8 @@ require("lazy").setup({
               -- 	color = darken_color(color)
               -- end
               local bgcolor = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), "bg#")
-              local win_edge = line.sep(is_first and "█" or "", hl, theme.fill)
-              is_first = false
+              win_no = win_no + 1
+              local win_edge = line.sep(win_no == num_wins and "█" or "", hl, theme.fill)
               return {
                 line.sep("", hl, theme.fill),
                 -- win.is_current() and '' or '',
@@ -759,6 +760,7 @@ require("lazy").setup({
         end)
       end,
       event = "TabNew",
+      cmd = "Tabby",
       dependencies = "nvim-tree/nvim-web-devicons",
     },
     {
@@ -883,9 +885,9 @@ require("lazy").setup({
             prepend_args = { "--indent-type", "Spaces", "--indent-width", "2" },
           },
           latexindent = {
-            args = { "-m", "-"},
+            args = { "-m", "-" },
             stdin = true,
-          }
+          },
         },
       },
     },
