@@ -13,10 +13,11 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   spec = {
-    {
-      "folke/tokyonight.nvim",
-      branch = "main",
-    },
+    -- {
+    --   "folke/tokyonight.nvim",
+    --   branch = "main",
+    -- },
+    { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
     {
       "nvim-telescope/telescope.nvim",
       cmd = "Telescope",
@@ -34,15 +35,22 @@ require("lazy").setup({
                       actions.close(_bufnr)
                     end,
                     type = "action",
-                    opts = { nowait = true, slient = true },
+                    opts = { nowait = true, silent = true },
                   },
                 },
               },
             },
           },
         })
+        require("telescope").load_extension("fzf")
       end,
-      dependencies = { "nvim-lua/plenary.nvim" },
+      dependencies = {
+        "nvim-lua/plenary.nvim",
+        {
+          "nvim-telescope/telescope-fzf-native.nvim",
+          build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release",
+        },
+      },
     },
     {
       "mbbill/undotree",
@@ -50,13 +58,13 @@ require("lazy").setup({
     },
     {
       "L3MON4D3/LuaSnip",
-      dependencies = { "mireq/luasnip-snippets" },
+      dependencies = { "honza/vim-snippets" },
       -- follow latest release.
       -- version = "<CurrentMajor>.*",
       -- install jsregexp (optional!).
       build = "make install_jsregexp",
       config = function()
-        require("luasnip_snippets.common.snip_utils").setup()
+        -- require("luasnip_snippets.common.snip_utils").setup()
         local luasnip = require("luasnip")
         require("luasnip.loaders.from_snipmate").lazy_load()
         vim.keymap.set("i", "<c-j>", luasnip.expand_or_jump)
@@ -85,7 +93,7 @@ require("lazy").setup({
       "lewis6991/gitsigns.nvim",
       event = "VeryLazy",
       opts = {
-        on_attach = function()
+        on_attach = function(bufnr)
           local gitsigns = require("gitsigns")
 
           local function map(mode, l, r, opts)
@@ -139,9 +147,37 @@ require("lazy").setup({
         end,
       },
     },
+    -- {
+    --   -- for viewing git conflicts
+    --   "akinsho/git-conflict.nvim",
+    --   tag = "v2.1.0",
+    -- },
     {
-      -- for viewing git conflicts
-      "akinsho/git-conflict.nvim",
+      "rhysd/conflict-marker.vim",
+      config = function()
+        vim.g.conflict_marker_enable_mappings = 0
+        vim.g.conflict_marker_highlight_group = ""
+
+        -- Set conflict marker patterns
+        vim.g.conflict_marker_begin = "^<<<<<<<\\+ .*$"
+        vim.g.conflict_marker_common_ancestors = "^|||||||\\+ .*$"
+        vim.g.conflict_marker_end = "^>>>>>>>\\+ .*$"
+
+        -- Define highlight groups
+        vim.api.nvim_set_hl(0, "ConflictMarkerBegin", { bg = "#32747e" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerOurs", { bg = "#25575e" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerTheirs", { bg = "#314360" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerEnd", { bg = "#455d85" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerCommonAncestorsHunk", { bg = "#564772" })
+
+        vim.keymap.set("n", "<leader>ct", "<Cmd>ConflictMarkerThemselves<CR>")
+        vim.keymap.set("n", "<leader>cO", "<Cmd>ConflictMarkerOurselves<CR>")
+        vim.keymap.set("n", "<leader>cb", "<Cmd>ConflictMarkerBoth<CR>")
+        vim.keymap.set("n", "<leader>cB", "<Cmd>ConflictMarkerBoth!<CR>")
+        vim.keymap.set("n", "<leader>cn", "<Cmd>ConflictMarkerNone<CR>")
+        vim.keymap.set("n", "]x", "<Cmd>ConflictMarkerNextHunk<CR>")
+        vim.keymap.set("n", "[x", "<Cmd>ConflictMarkerPrevHunk<CR>")
+      end,
     },
     -- {
     -- 	"ellisonleao/gruvbox.nvim",
@@ -217,7 +253,7 @@ require("lazy").setup({
     },
     {
       "tpope/vim-fugitive",
-      cmd = { "G", "Git", "Gdiffsplit", "Gvdiffsplit" },
+      cmd = { "G", "Git", "Gdiffsplit", "Gvdiffsplit", "Gedit" },
     },
     {
       "neovim/nvim-lspconfig",
@@ -266,7 +302,7 @@ require("lazy").setup({
     {
       "saghen/blink.cmp",
       version = "*",
-      event = "InsertEnter",
+      event = { "InsertEnter", "CmdLineEnter" },
       opts = {
         sources = {
           default = { "lsp", "path", "snippets", "buffer" },
@@ -278,6 +314,9 @@ require("lazy").setup({
           preset = "enter",
           ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
           ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+          ["<C-p>"] = {},
+          ["<C-n>"] = {},
+          ["<C-k>"] = {},
         },
         completion = {
           list = {
@@ -289,13 +328,33 @@ require("lazy").setup({
           documentation = {
             auto_show = true,
             auto_show_delay_ms = 500,
-          }
+          },
         },
         snippets = { preset = "luasnip" },
         signature = {
           enabled = true,
           window = {
             show_documentation = true,
+          },
+        },
+        cmdline = {
+          completion = {
+            menu = {
+              auto_show = true,
+            },
+            list = {
+              selection = {
+                preselect = false,
+                auto_insert = true,
+              },
+            },
+          },
+          keymap = {
+            -- preset = "cmdlien",
+            -- ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+            -- ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+            -- ["<C-p>"] = {},
+            -- ["<C-n>"] = {},
           },
         },
       },
@@ -448,98 +507,99 @@ require("lazy").setup({
     {
       "nvim-treesitter/nvim-treesitter",
       build = ":TSUpdate",
+      branch = "main",
+      config = function()
+        local ts = require("nvim-treesitter")
+        local used_languages =
+          { "c", "cpp", "python", "javascript", "html", "css", "lua", "markdown", "markdown_inline" }
+        ts.install(used_languages)
+        vim.api.nvim_create_autocmd("FileType", {
+          pattern = used_languages,
+          callback = function()
+            vim.treesitter.start()
+          end,
+        })
+      end,
     },
     {
       "nvim-treesitter/nvim-treesitter-textobjects",
       event = "VeryLazy",
+      branch = "main",
       config = function()
-        require("nvim-treesitter.configs").setup({
-          textobjects = {
-            select = {
-              enable = true,
-              lookahead = true,
-              keymaps = {
-                -- You can use the capture groups defined in textobjects.scm
-                ["af"] = "@function.outer",
-                ["if"] = "@function.inner",
-                ["ac"] = "@class.outer",
-                -- You can optionally set descriptions to the mappings (used in the desc parameter of
-                -- nvim_buf_set_keymap) which plugins like which-key display
-                ["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
-                -- You can also use captures from other query groups like `locals.scm`
-                ["as"] = {
-                  query = "@local.scope",
-                  query_group = "locals",
-                  desc = "Select language scope",
-                },
-              },
-              selection_modes = {
-                ["@parameter.outer"] = "v", -- charwise
-                ["@function.outer"] = "V", -- linewise
-                ["@class.outer"] = "<c-v>", -- blockwise
-              },
-            },
-            swap = {
-              enable = true,
-              swap_next = {
-                ["<leader>sn"] = "@parameter.inner",
-              },
-              swap_previous = {
-                ["<leader>sp"] = "@parameter.inner",
-              },
-            },
-            move = {
-              enable = true,
-              set_jumps = true, -- whether to set jumps in the jumplist
-              goto_next_start = {
-                ["]m"] = "@function.outer",
-                ["]]"] = { query = "@class.outer", desc = "Next class start" },
-                --
-                -- You can use regex matching (i.e. lua pattern) and/or pass a list in a "query" key to group multiple queries.
-                -- ["]o"] = "@loop.*",
-                -- ["]o"] = { query = { "@loop.inner", "@loop.outer" } }
-                ["]o"] = "@loop.outer",
-                --
-                -- You can pass a query group to use query from `queries/<lang>/<query_group>.scm file in your runtime path.
-                -- Below example nvim-treesitter's `locals.scm` and `folds.scm`. They also provide highlights.scm and indent.scm.
-                ["]s"] = { query = "@local.scope", query_group = "locals", desc = "Next scope" },
-                ["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
-                ["]d"] = { -- Custom keybinding for moving to the next conditional start
-                  query = "@conditional.outer",
-                  desc = "Jump to next conditional (if, else if, else, switch)",
-                },
-              },
-              goto_next_end = {
-                ["]M"] = "@function.outer",
-                ["]["] = "@class.outer",
-              },
-              goto_previous_start = {
-                ["[m"] = "@function.outer",
-                ["[["] = "@class.outer",
-                ["[s"] = { query = "@local.scope", query_group = "locals", desc = "pPrevious scope" },
-                ["[z"] = { query = "@fold", query_group = "folds", desc = "Previous fold" },
-                ["[d"] = { -- Custom keybinding for moving to the next conditional start
-                  query = "@conditional.outer",
-                  desc = "Jump to next conditional (if, else if, else, switch)",
-                },
-                ["[o"] = "@loop.outer",
-              },
-              goto_previous_end = {
-                ["[M"] = "@function.outer",
-                ["[]"] = "@class.outer",
-              },
-              -- Below will go to either the start or the end, whichever is closer.
-              -- Use if you want more granular movements
-              -- Make it even more gradual by adding multiple queries and regex.
-              -- goto_next = {
-              --   ["]d"] = "@conditional.outer",
-              -- },
-              -- goto_previous = {
-              --   ["[d"] = "@conditional.outer",
-              -- },
-            },
+        require("nvim-treesitter-textobjects").setup({
+          select = {
+            lookahead = true,
           },
         })
+        vim.keymap.set("n", "<leader>sn", function()
+          require("nvim-treesitter-textobjects.swap").swap_next({ "@parameter.inner", "@function.outer" })
+        end)
+        vim.keymap.set("n", "<leader>sp", function()
+          require("nvim-treesitter-textobjects.swap").swap_previous({ "@parameter.outer", "@function.outer" })
+        end)
+        vim.keymap.set({ "x", "o" }, "af", function()
+          require("nvim-treesitter-textobjects.select").select_textobject("@function.outer", "textobjects")
+        end)
+        vim.keymap.set({ "x", "o" }, "if", function()
+          require("nvim-treesitter-textobjects.select").select_textobject("@function.inner", "textobjects")
+        end)
+        vim.keymap.set({ "x", "o" }, "ac", function()
+          require("nvim-treesitter-textobjects.select").select_textobject("@class.outer", "textobjects")
+        end)
+        vim.keymap.set({ "x", "o" }, "ic", function()
+          require("nvim-treesitter-textobjects.select").select_textobject("@class.inner", "textobjects")
+        end)
+        -- You can also use captures from other query groups like `locals.scm`
+        vim.keymap.set({ "x", "o" }, "as", function()
+          require("nvim-treesitter-textobjects.select").select_textobject("@local.scope", "locals")
+        end)
+        vim.keymap.set({ "n", "x", "o" }, "]m", function()
+          require("nvim-treesitter-textobjects.move").goto_next_start("@function.outer", "textobjects")
+        end)
+        vim.keymap.set({ "n", "x", "o" }, "]]", function()
+          require("nvim-treesitter-textobjects.move").goto_next_start("@class.outer", "textobjects")
+        end)
+        -- You can also pass a list to group multiple queries.
+        vim.keymap.set({ "n", "x", "o" }, "]o", function()
+          require("nvim-treesitter-textobjects.move").goto_next_start({ "@loop.inner", "@loop.outer" }, "textobjects")
+        end)
+        -- You can also use captures from other query groups like `locals.scm` or `folds.scm`
+        vim.keymap.set({ "n", "x", "o" }, "]s", function()
+          require("nvim-treesitter-textobjects.move").goto_next_start("@local.scope", "locals")
+        end)
+        vim.keymap.set({ "n", "x", "o" }, "]z", function()
+          require("nvim-treesitter-textobjects.move").goto_next_start("@fold", "folds")
+        end)
+
+        vim.keymap.set({ "n", "x", "o" }, "]M", function()
+          require("nvim-treesitter-textobjects.move").goto_next_end("@function.outer", "textobjects")
+        end)
+        vim.keymap.set({ "n", "x", "o" }, "][", function()
+          require("nvim-treesitter-textobjects.move").goto_next_end("@class.outer", "textobjects")
+        end)
+
+        vim.keymap.set({ "n", "x", "o" }, "[m", function()
+          require("nvim-treesitter-textobjects.move").goto_previous_start("@function.outer", "textobjects")
+        end)
+        vim.keymap.set({ "n", "x", "o" }, "[[", function()
+          require("nvim-treesitter-textobjects.move").goto_previous_start("@class.outer", "textobjects")
+        end)
+
+        vim.keymap.set({ "n", "x", "o" }, "[M", function()
+          require("nvim-treesitter-textobjects.move").goto_previous_end("@function.outer", "textobjects")
+        end)
+        vim.keymap.set({ "n", "x", "o" }, "[]", function()
+          require("nvim-treesitter-textobjects.move").goto_previous_end("@class.outer", "textobjects")
+        end)
+
+        -- Go to either the start or the end, whichever is closer.
+        -- Use if you want more granular movements
+        vim.keymap.set({ "n", "x", "o" }, "]d", function()
+          require("nvim-treesitter-textobjects.move").goto_next("@conditional.outer", "textobjects")
+        end)
+        vim.keymap.set({ "n", "x", "o" }, "[d", function()
+          require("nvim-treesitter-textobjects.move").goto_previous("@conditional.outer", "textobjects")
+        end)
       end,
     },
     {
@@ -582,6 +642,7 @@ require("lazy").setup({
       keys = {
         { [[<C-\>]], desc = "Toggle terminal" },
       },
+      cmd = "ToggleTerm",
     },
     {
       url = "https://gitlab.com/HiPhish/rainbow-delimiters.nvim.git",
@@ -632,8 +693,8 @@ require("lazy").setup({
         --
         -- 	return string.format("#%02x%02x%02x", r, g, b)
         -- end
-
         require("tabby.tabline").set(function(line)
+          local is_first = true
           return {
             -- {
             --   { '  ', hl = theme.head },
@@ -651,8 +712,7 @@ require("lazy").setup({
               -- end
               local bgcolor = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), "bg#")
               return {
-                -- line.sep("█", hl, theme.fill),
-                line.sep("", hl, theme.fill),
+                line.sep(tab.number() == 1 and "█" or "", hl, theme.fill),
                 -- tab.is_current() and '' or '',
                 tab.number(),
                 -- fileicon,
@@ -676,13 +736,16 @@ require("lazy").setup({
               -- 	color = darken_color(color)
               -- end
               local bgcolor = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), "bg#")
+              local win_edge = line.sep(is_first and "█" or "", hl, theme.fill)
+              is_first = false
               return {
                 line.sep("", hl, theme.fill),
                 -- win.is_current() and '' or '',
                 -- win.file_icon(),
                 { fileicon, hl = { fg = color, bg = bgcolor } },
                 win.buf_name(),
-                line.sep("", hl, theme.fill),
+                -- line.sep("", hl, theme.fill),
+                win_edge,
                 hl = hl,
                 margin = " ",
               }
@@ -790,13 +853,14 @@ require("lazy").setup({
         },
       },
       opts = {
+        -- log_level = vim.log.levels.DEBUG,
         formatters_by_ft = {
           lua = { "stylua" },
           python = { "ruff_format", "ruff_fix", "ruff_organize_imports" },
-          haskell = { "ormolu" },
+          -- haskell = { "ormolu" },
           cpp = { "clang-format" },
           c = { "clang-format" },
-          tex = { "tex-fmt" },
+          tex = { "latexindent" },
           bib = { "tex-fmt" },
           -- prettier
           javascript = { "prettier" },
@@ -813,18 +877,20 @@ require("lazy").setup({
         },
         formatters = {
           ["clang-format"] = {
-            prepend_args = { "-style='{BasedOnStyle: LLVM, IndentWidth: 4}'" },
+            prepend_args = { "--style={BasedOnStyle: LLVM, IndentWidth: 4}" },
           },
           stylua = {
             prepend_args = { "--indent-type", "Spaces", "--indent-width", "2" },
           },
+          latexindent = {
+            args = { "-m", "-"},
+            stdin = true,
+          }
         },
       },
     },
-    {
-      "onsails/lspkind.nvim",
-      lazy = true,
-    },
+    -- set terminal background color
+    -- { "typicode/bg.nvim", lazy = false }
     -- {
     --        --haskell
     -- 	"mrcjkb/haskell-tools.nvim",
@@ -858,7 +924,8 @@ require("lazy").setup({
     -- 	end,
     -- },
   },
-  install = { colorscheme = { "tokyonight-night" } },
+  -- install = { colorscheme = { "tokyonight-night" } },
+  install = { colorscheme = { "catppuccin-mocha" } },
 })
 
 -- require("gruvbox").setup({
@@ -888,7 +955,8 @@ require("lazy").setup({
 
 vim.cmd.syntax("on")
 -- tokyonight colorscheme (defined earlier)
-vim.cmd.colorscheme("tokyonight-night")
+-- vim.cmd.colorscheme("tokyonight-night")
+vim.cmd.colorscheme("catppuccin-mocha")
 -- vim.cmd.colorscheme("gruvbox")
 -- no logging
 vim.lsp.set_log_level("off")
@@ -910,7 +978,7 @@ set.showcmd = true
 set.undodir = "/Users/ericye/.local/share/nvim/undo"
 set.undofile = true
 set.completeopt = "menu,menuone,noselect"
--- set.tabstop = 4
+set.tabstop = 8
 set.shiftwidth = 4
 -- set.softtabstop = 4
 set.expandtab = true
@@ -956,11 +1024,24 @@ vim.api.nvim_create_autocmd({ "BufReadPost" }, {
 })
 
 -- local signs = { Error = "", Warn = "", Hint = "󰌵", Information = "󰋼" }
-local signs = { Error = "", Warn = "", Hint = "", Information = "" }
-for type, icon in pairs(signs) do
-  local hl = "DiagnosticSign" .. type
-  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-end
+-- local signs = { Error = "", Warn = "", Hint = "", Information = "" }
+vim.diagnostic.config({
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = "",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.HINT] = "",
+      [vim.diagnostic.severity.INFO] = "",
+    },
+  },
+  virtual_text = {
+    prefix = "●",
+  },
+})
+-- for type, icon in pairs(signs) do
+--   local hl = "DiagnosticSign" .. type
+--   -- vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+-- end
 -- airline use power line fonts
 -- vim.g.airline_powerline_fonts = true
 
@@ -1023,10 +1104,45 @@ vim.keymap.set("n", "<Leader>co", "<cmd>Lspsaga outgoing_calls<CR>")
 
 vim.keymap.set({ "n", "t" }, "∂", "<cmd>Lspsaga term_toggle<CR>", { silent = true })
 
-local lspconfig = require("lspconfig")
+local capabilities = {
+  textDocument = {
+    completion = {
+      completionItem = {
+        commitCharactersSupport = false,
+        deprecatedSupport = true,
+        documentationFormat = { "markdown", "plaintext" },
+        insertReplaceSupport = true,
+        insertTextModeSupport = {
+          valueSet = { 1 },
+        },
+        labelDetailsSupport = true,
+        preselectSupport = false,
+        resolveSupport = {
+          properties = { "documentation", "detail", "additionalTextEdits", "command", "data" },
+        },
+        snippetSupport = true,
+        tagSupport = {
+          valueSet = { 1 },
+        },
+      },
+      completionList = {
+        itemDefaults = { "commitCharacters", "editRange", "insertTextFormat", "insertTextMode", "data" },
+      },
+      contextSupport = true,
+      insertTextMode = 1,
+    },
+  },
+}
 -- python
-lspconfig.basedpyright.setup({
-  cmd = { "/opt/homebrew/lib/node_modules/basedpyright/langserver.index.js", "--stdio" },
+-- lspconfig.pyrefly.setup({
+--   capabilities = capabilities,
+--   on_attach = function()
+--     vim.lsp.inlay_hint.enable(true)
+--   end,
+-- })
+vim.lsp.config("basedpyright", {
+  capabilities = capabilities,
+  cmd = { "basedpyright-langserver", "--stdio" },
   settings = {
     basedpyright = {
       analysis = {
@@ -1078,8 +1194,10 @@ lspconfig.basedpyright.setup({
   --     },
   --   })
 })
+vim.lsp.enable("basedpyright")
 -- javascript
-lspconfig.ts_ls.setup({
+vim.lsp.config("ts_ls", {
+  capabilities = capabilities,
   settings = {
     javascript = {
       inlayHints = {
@@ -1108,10 +1226,12 @@ lspconfig.ts_ls.setup({
     vim.lsp.inlay_hint.enable(true)
   end,
 })
+vim.lsp.enable("ts_ls")
 
 -- c, cpp
 local cpp_first_time = true
-lspconfig.clangd.setup({
+vim.lsp.config("clangd", {
+  capabilities = capabilities,
   on_attach = function()
     if cpp_first_time then
       require("clangd_extensions").setup({
@@ -1143,18 +1263,21 @@ lspconfig.clangd.setup({
     vim.lsp.inlay_hint.enable(true)
   end,
 })
+vim.lsp.enable("clangd")
 
 -- haskell
-lspconfig.hls.setup({
-  filetypes = { "haskell", "lhaskell", "cabal" },
-})
+-- lspconfig.hls.setup({
+--   capabilities = capabilities,
+--   filetypes = { "haskell", "lhaskell", "cabal" },
+-- })
 
 -- grammar checker for markdown, latex
 local ltex_first_time = true
-lspconfig.ltex.setup({
+vim.lsp.config("ltex_plus", {
   filetypes = { "tex" },
   settings = {
     ltex = {
+      enabled = { "latex", "markdown" },
       ["ltex.latex.commands"] = {
         ["\\texttt{}"] = "dummy",
         ["\\newcounter{}[]"] = "ignore",
@@ -1198,6 +1321,7 @@ lspconfig.ltex.setup({
     end
   end,
 })
+vim.lsp.enable("ltex_plus")
 
 -- lspconfig.texlab.setup{
 --     settings = {
@@ -1222,34 +1346,34 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-require("nvim-treesitter.configs").setup({
-  -- A list of parser names, or "all"
-  ensure_installed = { "c", "cpp", "python", "javascript", "html", "css", "lua", "markdown", "markdown_inline" },
-  -- Install parsers synchronously (only applied to `ensure_installed`)
-  sync_install = false,
-  -- Automatically install missing parsers when entering buffer
-  auto_install = true,
-  highlight = {
-    -- `false` will disable the whole extension
-    enable = true,
-    disable = { "latex", "typescript" },
-    -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
-    -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
-    -- the name of the parser)
-    -- list of language that will be disabled
-    -- disable = { "c", "rust" },
-
-    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-    -- Using this option may slow down your editor, and you may see some duplicate highlights.
-    -- Instead of true it can also be a list of languages
-    additional_vim_regex_highlighting = false,
-  },
-  indent = {
-    enable = true,
-    disable = { "latex" },
-  },
-})
+-- require("nvim-treesitter.configs").setup({
+--   -- A list of parser names, or "all"
+--   ensure_installed = { "c", "cpp", "python", "javascript", "html", "css", "lua", "markdown", "markdown_inline" },
+--   -- Install parsers synchronously (only applied to `ensure_installed`)
+--   sync_install = false,
+--   -- Automatically install missing parsers when entering buffer
+--   auto_install = true,
+--   highlight = {
+--     -- `false` will disable the whole extension
+--     enable = true,
+--     disable = { "latex", "typescript" },
+--     -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
+--     -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
+--     -- the name of the parser)
+--     -- list of language that will be disabled
+--     -- disable = { "c", "rust" },
+--
+--     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+--     -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+--     -- Using this option may slow down your editor, and you may see some duplicate highlights.
+--     -- Instead of true it can also be a list of languages
+--     additional_vim_regex_highlighting = false,
+--   },
+--   indent = {
+--     enable = true,
+--     disable = { "latex" },
+--   },
+-- })
 -- local function diff_source()
 -- 	local gitsigns = vim.b.gitsigns_status_dict
 -- 	if gitsigns then
@@ -1272,7 +1396,7 @@ function symbols_has()
       groups = {},
       title = false,
       filter = { range = true },
-      format = " {kind_icon}{symbol.name:Normal}",
+      format = "{kind_icon}{symbol.name:Normal}",
       -- The following line is needed to fix the background color
       -- Set it to the lualine section you want to use
       hl_group = "lualine_c_normal",
@@ -1287,7 +1411,7 @@ require("lualine").setup({
     component_separators = { left = "", right = "" },
     section_separators = { left = "", right = "" },
     disabled_filetypes = {
-      statusline = { "NvimTree", "packer", "sagaoutline", "undotree", "vimtex-toc", "trouble" },
+      -- statusline = { "NvimTree", "packer", "sagaoutline", "undotree", "vimtex-toc", "trouble" },
     },
   },
   sections = {
@@ -1315,6 +1439,7 @@ vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { silent = tru
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { silent = true })
 vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { silent = true })
 vim.keymap.set("n", "<leader>fs", "<cmd>Telescope lsp_document_symbols<cr>", { silent = true })
+vim.keymap.set("n", "<leader>fw", "<cmd>Telescope lsp_dynamic_workspace_symbols<cr>", { silent = true })
 
 -- nvimtree
 vim.keymap.set("n", "<leader>tr", "<cmd>NvimTreeToggle<cr>", { silent = true, noremap = true })
@@ -1323,13 +1448,64 @@ vim.keymap.set("n", "<leader>tr", "<cmd>NvimTreeToggle<cr>", { silent = true, no
 vim.keymap.set("n", "<leader>ut", "<cmd>UndotreeToggle<cr>", { silent = true, noremap = true })
 
 -- git conflict
-require("git-conflict").setup({
-  default_mappings = false,
-})
-vim.keymap.set("n", "<leader>co", "<Plug>(git-conflict-ours)")
-vim.keymap.set("n", "<leader>ct", "<Plug>(git-conflict-theirs)")
-vim.keymap.set("n", "<leader>cb", "<Plug>(git-conflict-both)")
-vim.keymap.set("n", "<leader>cB", "<Cmd>GitConflictChooseBase<CR>")
-vim.keymap.set("n", "<leader>c0", "<Plug>(git-conflict-none)")
-vim.keymap.set("n", "[x", "<Plug>(git-conflict-prev-conflict)")
-vim.keymap.set("n", "]x", "<Plug>(git-conflict-next-conflict)")
+-- require("git-conflict").setup({
+--   default_mappings = false,
+-- })
+-- vim.keymap.set("n", "<leader>co", "<Plug>(git-conflict-ours)")
+-- vim.keymap.set("n", "<leader>ct", "<Plug>(git-conflict-theirs)")
+-- vim.keymap.set("n", "<leader>cb", "<Plug>(git-conflict-both)")
+-- vim.keymap.set("n", "<leader>cB", "<Cmd>GitConflictChooseBase<CR>")
+-- vim.keymap.set("n", "<leader>c0", "<Plug>(git-conflict-none)")
+-- vim.keymap.set("n", "[x", "<Plug>(git-conflict-prev-conflict)")
+-- vim.keymap.set("n", "]x", "<Plug>(git-conflict-next-conflict)")
+
+-- Toogle diagnostics
+local toggle_diagnostics = function()
+  vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+end
+
+vim.keymap.set("n", "<leader>tt", toggle_diagnostics)
+
+local tty = vim.uv.new_tty(1, false)
+if tty ~= nil then
+  -- set bg color
+  local update_count = 0
+
+  local reset = function()
+    if os.getenv("TMUX") then
+      tty:write("\x1bPtmux;\x1b\x1b]111\x07\x1b\\")
+    elseif os.getenv("TERM") == "xterm-kitty" then
+      for _ = 1, update_count do
+        tty:write("\x1b]30101\x07")
+      end
+    else
+      tty:write("\x1b]111\x07")
+    end
+  end
+
+  local update = function()
+    local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false, create = false })
+    local bg = normal.bg
+    local fg = normal.fg
+    if bg == nil then
+      return reset()
+    end
+    local bghex = string.format("#%06x", bg)
+    local fghex = string.format("#%06x", fg)
+    if os.getenv("TERM") == "xterm-kitty" then
+      tty:write("\x1b]30001\x07")
+    end
+
+    if os.getenv("TMUX") then
+      tty:write("\x1bPtmux;\x1b\x1b]11;" .. bghex .. "\x07\x1b\\")
+      tty:write("\x1bPtmux;\x1b\x1b]12;" .. fghex .. "\x07\x1b\\")
+    else
+      tty:write("\x1b]11;" .. bghex .. "\x07")
+      tty:write("\x1b]12;" .. fghex .. "\x07")
+    end
+    update_count = update_count + 1
+  end
+
+  vim.api.nvim_create_autocmd({ "ColorScheme", "UIEnter" }, { callback = update })
+  vim.api.nvim_create_autocmd({ "VimLeavePre", "VimSuspend" }, { callback = reset })
+end
