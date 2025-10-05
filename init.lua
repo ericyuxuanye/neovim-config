@@ -511,7 +511,7 @@ require("lazy").setup({
       config = function()
         local ts = require("nvim-treesitter")
         local used_languages =
-          { "c", "cpp", "python", "javascript", "html", "css", "lua", "markdown", "markdown_inline" }
+          { "c", "cpp", "python", "javascript", "html", "css", "lua", "markdown", "markdown_inline", "json" }
         ts.install(used_languages)
         vim.api.nvim_create_autocmd("FileType", {
           pattern = used_languages,
@@ -693,6 +693,9 @@ require("lazy").setup({
         --
         -- 	return string.format("#%02x%02x%02x", r, g, b)
         -- end
+        local themeBg = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID("Normal")), "bg#")
+        local themeFill = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(theme.fill)), "bg#")
+
         require("tabby.tabline").set(function(line)
           local num_wins = #line.api.get_tab_wins(line.api.get_current_tab())
           local win_no = 0
@@ -713,7 +716,14 @@ require("lazy").setup({
               -- end
               local bgcolor = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), "bg#")
               return {
-                line.sep(tab.number() == 1 and "█" or "", hl, theme.fill),
+                -- line.sep(tab.number() == 1 and "█" or "", hl, theme.fill),
+                {
+                  tab.number() == 1 and (tab.is_current() and "█" or "") or "",
+                  hl = {
+                    fg = (tab.number() == 1 and not tab.is_current()) and themeBg or bgcolor,
+                    bg = themeFill,
+                  },
+                },
                 -- tab.is_current() and '' or '',
                 tab.number(),
                 -- fileicon,
@@ -738,7 +748,7 @@ require("lazy").setup({
               -- end
               local bgcolor = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), "bg#")
               win_no = win_no + 1
-              local win_edge = line.sep(win_no == num_wins and "█" or "", hl, theme.fill)
+              -- local win_edge = line.sep(win_no == num_wins and "█" or "", hl, theme.fill)
               return {
                 line.sep("", hl, theme.fill),
                 -- win.is_current() and '' or '',
@@ -746,7 +756,13 @@ require("lazy").setup({
                 { fileicon, hl = { fg = color, bg = bgcolor } },
                 win.buf_name(),
                 -- line.sep("", hl, theme.fill),
-                win_edge,
+                {
+                  win_no == num_wins and (win.is_current() and "█" or "") or "",
+                  hl = {
+                    fg = (win_no == num_wins and not win.is_current()) and themeBg or bgcolor,
+                    bg = themeFill,
+                  },
+                },
                 hl = hl,
                 margin = " ",
               }
