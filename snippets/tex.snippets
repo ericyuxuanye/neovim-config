@@ -7,17 +7,20 @@ snippet int integral
 snippet ind indefinite integral
 	\\int $1 \\, d${2:x} $0
 
-snippet () \left \right
+snippet () \left( \right)
 	\\left( $1 \\right)$0
 
-snippet {} \left \right
+snippet {} \left{ \right}
     \\left\\{ $1 \\right\\}$0
 
-snippet [] \left \right
+snippet [] \left[ \right]
     \\left[ $1 \\right]$0
 
-snippet || \left \right
+snippet || \left| \right|
     \\left| $1 \\right|$0
+
+snippet <> \left\langle \right\rangle
+    \\left\\langle $1 \\right\\rangle $0
 
 snippet al* unnumbered align environment
 	\\begin{align*}
@@ -34,6 +37,9 @@ snippet dm displaymath
 	\\[
 		$1
 	\\]
+
+snippet bf textbf
+    \\textbf{$1}$0
 
 snippet mbf mathbf
     \\mathbf{$1}$0

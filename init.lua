@@ -17,14 +17,22 @@ require("lazy").setup({
     --   "folke/tokyonight.nvim",
     --   branch = "main",
     -- },
-    { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+    {
+      "catppuccin/nvim",
+      name = "catppuccin",
+      priority = 1000,
+      opts = {
+        integrations = { blink_cmp = true },
+      },
+    },
     {
       "nvim-telescope/telescope.nvim",
       cmd = "Telescope",
       config = function()
         local state = require("telescope.actions.state")
         local actions = require("telescope.actions")
-        require("telescope").setup({
+        local telescope = require("telescope")
+        telescope.setup({
           pickers = {
             find_files = {
               mappings = {
@@ -42,7 +50,7 @@ require("lazy").setup({
             },
           },
         })
-        require("telescope").load_extension("fzf")
+        telescope.load_extension("fzf")
       end,
       dependencies = {
         "nvim-lua/plenary.nvim",
@@ -323,6 +331,11 @@ require("lazy").setup({
             selection = {
               preselect = false,
               auto_insert = true,
+            },
+          },
+          menu = {
+            draw = {
+              treesitter = { "lsp" },
             },
           },
           documentation = {
@@ -787,6 +800,7 @@ require("lazy").setup({
         vim.g.vimtex_view_method = "skim"
         -- vim.g.vimtex_quickfix_enabled = 0
         vim.g.vimtex_quickfix_mode = 0
+
         vim.g.vimtex_fold_enabled = true
         vim.g.vimtex_compiler_progname = "nvr"
         -- vim.g.vimtex_compiler_latexmk_engines = {
@@ -801,6 +815,50 @@ require("lazy").setup({
             "-interaction=nonstopmode",
           },
         }
+
+        local ns = vim.api.nvim_create_namespace("vimtex_diagnostics")
+
+        local function set_vimtex_diagnostics()
+          local qf = vim.fn.getqflist()
+          if not qf or vim.tbl_isempty(qf) then
+            vim.diagnostic.reset(ns)
+            return
+          end
+
+          local diagnostics_by_buf = {}
+
+          for _, item in ipairs(qf) do
+            if item.bufnr and item.bufnr > 0 and item.lnum > 0 then
+              local severity = vim.diagnostic.severity.ERROR
+              if item.type == "W" then
+                severity = vim.diagnostic.severity.WARN
+              elseif item.type == "I" then
+                severity = vim.diagnostic.severity.INFO
+              end
+
+              local diag = {
+                lnum = item.lnum - 1,
+                col = math.max(item.col - 1, 0),
+                message = item.text or "",
+                severity = severity,
+                source = "vimtex",
+              }
+
+              diagnostics_by_buf[item.bufnr] = diagnostics_by_buf[item.bufnr] or {}
+              table.insert(diagnostics_by_buf[item.bufnr], diag)
+            end
+          end
+
+          vim.diagnostic.reset(ns)
+          for bufnr, diags in pairs(diagnostics_by_buf) do
+            vim.diagnostic.set(ns, bufnr, diags)
+          end
+        end
+
+        vim.api.nvim_create_autocmd("User", {
+          pattern = { "VimtexEventCompileFailed", "VimtexEventCompileSuccess" },
+          callback = set_vimtex_diagnostics,
+        })
       end,
       ft = "tex",
       cmd = "VimtexInverseSearch",
