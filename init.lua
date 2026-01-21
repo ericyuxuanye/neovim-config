@@ -205,7 +205,7 @@ require("lazy").setup({
           },
         })
         -- local bracket = basic_rule.bracket_creator(npairs.config)
-        npairs.get_rule("'")[1].not_filetypes = { "latex", "tex" }
+        npairs.get_rule("'")[1].not_filetypes = { "latex", "tex", "rust" }
         npairs.add_rules({
           Rule("\\{", "\\}", "tex"),
           -- bracket("{", "}", "tex"):with_pair(cond.not_before_text("\\")):with_move(cond.not_before_text("\\")),
@@ -918,6 +918,12 @@ require("lazy").setup({
       config = true,
     },
     {
+      "lukas-reineke/indent-blankline.nvim",
+      config = function()
+        require("ibl").setup({ scope = { enabled = false } })
+      end,
+    },
+    {
       "stevearc/conform.nvim",
       keys = {
         {
@@ -948,6 +954,7 @@ require("lazy").setup({
           css = { "prettier" },
           yaml = { "prettier" },
           json = { "prettier" },
+          rust = { "rustfmt", lsp_format = "fallback" },
 
           ["_"] = { "trim_whitespace" },
         },
@@ -1079,6 +1086,8 @@ set.foldenable = false
 -- global statusline
 set.laststatus = 3
 
+set.breakindent = true
+
 -- Jump to last location
 vim.api.nvim_create_autocmd({ "BufReadPost" }, {
   pattern = { "*" },
@@ -1106,7 +1115,7 @@ vim.diagnostic.config({
     text = {
       [vim.diagnostic.severity.ERROR] = "",
       [vim.diagnostic.severity.WARN] = "",
-      [vim.diagnostic.severity.HINT] = "",
+      [vim.diagnostic.severity.HINT] = "󰌶",
       [vim.diagnostic.severity.INFO] = "",
     },
   },
@@ -1126,7 +1135,7 @@ vim.diagnostic.config({
 -- vim.g.UltiSnipsJumpBackwardTrigger = '<c-p>'
 
 -- python3 path - change this if version changes
-vim.g.python3_host_prog = "/opt/homebrew/bin/python3.11"
+-- vim.g.python3_host_prog = "/opt/homebrew/bin/python3"
 
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
@@ -1346,6 +1355,15 @@ vim.lsp.enable("clangd")
 --   capabilities = capabilities,
 --   filetypes = { "haskell", "lhaskell", "cabal" },
 -- })
+--
+
+vim.lsp.config("rust_analyzer", {
+  capabilities = capabilities,
+  on_attach = function()
+    vim.lsp.inlay_hint.enable(true)
+  end,
+})
+vim.lsp.enable("rust_analyzer")
 
 -- grammar checker for markdown, latex
 local ltex_first_time = true

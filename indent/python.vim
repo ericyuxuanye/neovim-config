@@ -25,6 +25,27 @@ if exists('b:did_indent')
 endif
 let b:did_indent = 1
 
+if has('nvim')
+lua << EOF
+_G.PythonPep8Indent_CheckTS = function(lnum, col)
+  local ts = vim.treesitter
+  local ok, parser = pcall(ts.get_parser, 0)
+  if not ok or not parser then return false end
+  local tree = parser:parse()[1]
+  if not tree then return false end
+  local root = tree:root()
+  
+  local node = root:named_descendant_for_range(lnum-1, col-1, lnum-1, col-1)
+  while node do
+    local t = node:type()
+    if t == 'string' or t == 'comment' then return true end
+    node = node:parent()
+  end
+  return false
+end
+EOF
+endif
+
 setlocal nolisp
 setlocal autoindent
 setlocal indentexpr=GetPythonPEPIndent(v:lnum)
@@ -76,8 +97,16 @@ if !get(g:, 'python_pep8_indent_skip_concealed', 0) || !has('conceal')
     " jedi* refers to syntax definitions from jedi-vim for call signatures, which
     " are inserted temporarily into the buffer.
     function! s:_skip_special_chars(line, col)
-        return synIDattr(synID(a:line, a:col, 0), 'name')
-              \ =~? s:special_chars_syn_pattern
+        if synIDattr(synID(a:line, a:col, 0), 'name') =~? s:special_chars_syn_pattern
+            return 1
+        endif
+        if has('nvim') && luaeval('PythonPep8Indent_CheckTS(_A[1], _A[2])', [a:line, a:col])
+            return 1
+        endif
+        if getline(a:line) =~# '^\s*#'
+            return 1
+        endif
+        return 0
     endfunction
 else
     " Also ignore anything concealed.
@@ -91,9 +120,19 @@ else
     endfunction
 
     function! s:_skip_special_chars(line, col)
-        return synIDattr(synID(a:line, a:col, 0), 'name')
-              \ =~? s:special_chars_syn_pattern
-              \ || s:is_concealed(a:line, a:col)
+        if synIDattr(synID(a:line, a:col, 0), 'name') =~? s:special_chars_syn_pattern
+            return 1
+        endif
+        if s:is_concealed(a:line, a:col)
+            return 1
+        endif
+        if has('nvim') && luaeval('PythonPep8Indent_CheckTS(_A[1], _A[2])', [a:line, a:col])
+            return 1
+        endif
+        if getline(a:line) =~# '^\s*#'
+            return 1
+        endif
+        return 0
     endfunction
 endif
 
