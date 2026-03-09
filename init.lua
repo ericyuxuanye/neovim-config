@@ -82,6 +82,28 @@ require("lazy").setup({
         vim.keymap.set("i", "<c-p>", function()
           luasnip.jump(-1)
         end)
+
+        local s = luasnip.snippet
+        local t = luasnip.text_node
+        local f = luasnip.function_node
+
+        -- LaTeX item snipper (deindents as well)
+        luasnip.add_snippets("tex", {
+          s({ trig = "it", priority = 2000 }, {
+            f(function()
+              -- deindent current line
+              local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+              local line = vim.api.nvim_get_current_line()
+              local sw = vim.o.shiftwidth
+
+              local indent = line:match("^%s*") or ""
+              local new_indent = indent:sub(sw + 1)
+
+              vim.api.nvim_buf_set_lines(0, row, row + 1, false, { new_indent })
+              return indent:sub(sw + 1) .. "\\item "
+            end),
+          }),
+        })
       end,
       event = "InsertEnter",
     },
@@ -954,7 +976,7 @@ require("lazy").setup({
           css = { "prettier" },
           yaml = { "prettier" },
           json = { "prettier" },
-          rust = { "rustfmt", lsp_format = "fallback" },
+          -- rust = { "rustfmt", lsp_format = "fallback" },
 
           ["_"] = { "trim_whitespace" },
         },
@@ -1357,13 +1379,13 @@ vim.lsp.enable("clangd")
 -- })
 --
 
-vim.lsp.config("rust_analyzer", {
-  capabilities = capabilities,
-  on_attach = function()
-    vim.lsp.inlay_hint.enable(true)
-  end,
-})
-vim.lsp.enable("rust_analyzer")
+-- vim.lsp.config("rust_analyzer", {
+--   capabilities = capabilities,
+--   on_attach = function()
+--     vim.lsp.inlay_hint.enable(true)
+--   end,
+-- })
+-- vim.lsp.enable("rust_analyzer")
 
 -- grammar checker for markdown, latex
 local ltex_first_time = true
