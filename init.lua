@@ -73,35 +73,41 @@ require("lazy").setup({
       build = "make install_jsregexp",
       config = function()
         -- require("luasnip_snippets.common.snip_utils").setup()
-        local luasnip = require("luasnip")
+        local ls = require("luasnip")
         require("luasnip.loaders.from_snipmate").lazy_load()
-        vim.keymap.set("i", "<c-j>", luasnip.expand_or_jump)
+        vim.keymap.set("i", "<c-j>", ls.expand_or_jump)
         vim.keymap.set("i", "<c-n>", function()
-          luasnip.jump(1)
+          ls.jump(1)
         end)
         vim.keymap.set("i", "<c-p>", function()
-          luasnip.jump(-1)
+          ls.jump(-1)
         end)
 
-        local s = luasnip.snippet
-        local t = luasnip.text_node
-        local f = luasnip.function_node
+        -- LaTeX item snipper (deindents as well)
+        local s = ls.snippet
+        local f = ls.function_node
+        local i = ls.insert_node
 
         -- LaTeX item snipper (deindents as well)
-        luasnip.add_snippets("tex", {
-          s({ trig = "it", priority = 2000 }, {
-            f(function()
-              -- deindent current line
-              local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-              local line = vim.api.nvim_get_current_line()
+        ls.add_snippets("tex", {
+          s({
+            -- Matches the start of the line (^), captures all whitespace (%s*), followed by 'it'
+            trig = "^(%s*)it",
+            trigEngine = "pattern",
+            priority = 2000,
+          }, {
+            f(function(_, snip)
+              -- snip.captures[1] contains the whitespace captured by (%s*)
+              local indent = snip.captures[1]
               local sw = vim.o.shiftwidth
 
-              local indent = line:match("^%s*") or ""
+              -- Trim 'sw' number of spaces from the captured indent
               local new_indent = indent:sub(sw + 1)
 
-              vim.api.nvim_buf_set_lines(0, row, row + 1, false, { new_indent })
-              return indent:sub(sw + 1) .. "\\item "
+              return new_indent .. "\\item "
             end),
+            -- Drops your cursor right after the space so you can start typing
+            i(1),
           }),
         })
       end,
@@ -300,11 +306,12 @@ require("lazy").setup({
     },
     {
       "nvimdev/lspsaga.nvim",
-      event = "LspAttach",
+      -- event = "LspAttach",
+      cmd = "Lspsaga",
       config = function()
         -- symbol in winbar text colors
-        vim.api.nvim_set_hl(0, "SagaWinbarFileName", { fg = "#c0caf5" })
-        vim.api.nvim_set_hl(0, "SagaWinbarFolderName", { fg = "#c0caf5" })
+        -- vim.api.nvim_set_hl(0, "SagaWinbarFileName", { fg = "#c0caf5" })
+        -- vim.api.nvim_set_hl(0, "SagaWinbarFolderName", { fg = "#c0caf5" })
         require("lspsaga").setup({
           symbol_in_winbar = {
             enable = false,
@@ -545,8 +552,19 @@ require("lazy").setup({
       branch = "main",
       config = function()
         local ts = require("nvim-treesitter")
-        local used_languages =
-          { "c", "cpp", "python", "javascript", "html", "css", "lua", "markdown", "markdown_inline", "json" }
+        local used_languages = {
+          "c",
+          "cpp",
+          "python",
+          "javascript",
+          "typescript",
+          "html",
+          "css",
+          "lua",
+          "markdown",
+          "markdown_inline",
+          "json",
+        }
         ts.install(used_languages)
         vim.api.nvim_create_autocmd("FileType", {
           pattern = used_languages,
@@ -994,6 +1012,14 @@ require("lazy").setup({
         },
       },
     },
+    {
+      "https://codeberg.org/andyg/leap.nvim.git",
+      lazy = true,
+      keys = {
+        { "<leader>j", "<Plug>(leap)", mode = { "n", "x", "o" } },
+        { "<leader>J", "<Plug>(leap-from-window)" },
+      },
+    },
     -- set terminal background color
     -- { "typicode/bg.nvim", lazy = false }
     -- {
@@ -1109,6 +1135,8 @@ set.foldenable = false
 set.laststatus = 3
 
 set.breakindent = true
+set.breakindentopt = "shift:2"
+set.showbreak = "↳"
 
 -- Jump to last location
 vim.api.nvim_create_autocmd({ "BufReadPost" }, {
