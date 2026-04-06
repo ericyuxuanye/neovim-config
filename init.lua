@@ -200,11 +200,11 @@ require("lazy").setup({
         vim.g.conflict_marker_end = "^>>>>>>>\\+ .*$"
 
         -- Define highlight groups
-        vim.api.nvim_set_hl(0, "ConflictMarkerBegin", { bg = "#32747e" })
-        vim.api.nvim_set_hl(0, "ConflictMarkerOurs", { bg = "#25575e" })
-        vim.api.nvim_set_hl(0, "ConflictMarkerTheirs", { bg = "#314360" })
-        vim.api.nvim_set_hl(0, "ConflictMarkerEnd", { bg = "#455d85" })
-        vim.api.nvim_set_hl(0, "ConflictMarkerCommonAncestorsHunk", { bg = "#564772" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerBegin", { bg = "#2a4e4c" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerOurs", { bg = "#283d2a" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerTheirs", { bg = "#26355a" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerEnd", { bg = "#1e4055" })
+        vim.api.nvim_set_hl(0, "ConflictMarkerCommonAncestorsHunk", { bg = "#36274d" })
 
         vim.keymap.set("n", "<leader>ct", "<Cmd>ConflictMarkerThemselves<CR>")
         vim.keymap.set("n", "<leader>cO", "<Cmd>ConflictMarkerOurselves<CR>")
@@ -904,6 +904,13 @@ require("lazy").setup({
       cmd = "VimtexInverseSearch",
     },
     {
+      "julian/lean.nvim",
+      event = { "BufReadPre *.lean", "BufNewFile *.lean" },
+      opts = { -- see below for full configuration options
+        mappings = true,
+      },
+    },
+    {
       "mfussenegger/nvim-lint",
       config = function()
         local lint = require("lint")
@@ -1090,7 +1097,7 @@ vim.cmd.syntax("on")
 vim.cmd.colorscheme("catppuccin-mocha")
 -- vim.cmd.colorscheme("gruvbox")
 -- no logging
-vim.lsp.set_log_level("off")
+vim.lsp.log.set_level("off")
 
 local set = vim.opt
 set.encoding = "utf-8"
@@ -1111,6 +1118,9 @@ set.undofile = true
 set.completeopt = "menu,menuone,noselect"
 set.tabstop = 8
 set.shiftwidth = 4
+-- so that we scroll by screen line
+set.smoothscroll = true
+set.exrc = true
 -- set.softtabstop = 4
 set.expandtab = true
 -- set.splitbelow = true
@@ -1485,7 +1495,7 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = "markdown",
   callback = function()
     if vim.api.nvim_win_get_config(0).relative == "" and not vim.bo[vim.api.nvim_win_get_buf(0)].readonly then
-      vim.cmd("LspStart ltex")
+      vim.lsp.start({name = "ltex_plus", cmd = {"ltex-ls-plus"}, root_dir = "."})
     end
   end,
 })
