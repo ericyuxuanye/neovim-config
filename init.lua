@@ -1,3 +1,4 @@
+vim.loader.enable() -- enable early bytecode compilation
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -575,6 +576,15 @@ require("lazy").setup({
       end,
     },
     {
+      "brenoprata10/nvim-highlight-colors",
+      config = true,
+      event = "BufReadPre",
+    },
+    {
+      "davidmh/mdx.nvim",
+      dependencies = { "nvim-treesitter/nvim-treesitter" },
+    },
+    {
       "nvim-treesitter/nvim-treesitter-textobjects",
       event = "VeryLazy",
       branch = "main",
@@ -1001,6 +1011,7 @@ require("lazy").setup({
           css = { "prettier" },
           yaml = { "prettier" },
           json = { "prettier" },
+          astro = { "prettier" },
           -- rust = { "rustfmt", lsp_format = "fallback" },
 
           ["_"] = { "trim_whitespace" },
@@ -1023,8 +1034,8 @@ require("lazy").setup({
       "https://codeberg.org/andyg/leap.nvim.git",
       lazy = true,
       keys = {
-        { "<leader>j", "<Plug>(leap)", mode = { "n", "x", "o" } },
-        { "<leader>J", "<Plug>(leap-from-window)" },
+        { "<leader>\\", "<Plug>(leap)", mode = { "n", "x", "o" } },
+        { "<leader>j", "<Plug>(leap-from-window)" },
       },
     },
     -- set terminal background color
@@ -1113,7 +1124,7 @@ set.showmode = false
 set.number = true
 set.relativenumber = true
 set.showcmd = true
-set.undodir = "/Users/ericye/.local/share/nvim/undo"
+set.undodir = vim.fs.normalize("~/.local/share/nvim/undo")
 set.undofile = true
 set.completeopt = "menu,menuone,noselect"
 set.tabstop = 8
@@ -1373,6 +1384,19 @@ vim.lsp.config("ts_ls", {
 })
 vim.lsp.enable("ts_ls")
 
+vim.lsp.config("astro", {
+  capabilities = capabilities,
+  init_options = {
+    typescript = {
+      tsdk = "/opt/homebrew/lib/node_modules/typescript/lib/",
+    },
+  },
+  on_attach = function()
+    vim.lsp.inlay_hint.enable(true)
+  end,
+})
+vim.lsp.enable("astro")
+
 -- c, cpp
 local cpp_first_time = true
 vim.lsp.config("clangd", {
@@ -1461,6 +1485,7 @@ vim.lsp.config("ltex_plus", {
       ["ltex.latex.environments"] = {
         algorithm = "ignore",
         quantikz = "ignore",
+        forest = "ignore",
       },
     },
   },
@@ -1495,7 +1520,7 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = "markdown",
   callback = function()
     if vim.api.nvim_win_get_config(0).relative == "" and not vim.bo[vim.api.nvim_win_get_buf(0)].readonly then
-      vim.lsp.start({name = "ltex_plus", cmd = {"ltex-ls-plus"}, root_dir = "."})
+      vim.lsp.start({ name = "ltex_plus", cmd = { "ltex-ls-plus" }, root_dir = "." })
     end
   end,
 })
@@ -1618,7 +1643,7 @@ local toggle_diagnostics = function()
   vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end
 
-vim.keymap.set("n", "<leader>tt", toggle_diagnostics)
+vim.keymap.set("n", "<leader>d", toggle_diagnostics)
 
 local tty = vim.uv.new_tty(1, false)
 if tty ~= nil then
