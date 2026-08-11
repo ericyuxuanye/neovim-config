@@ -14,10 +14,6 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   spec = {
-    -- {
-    --   "folke/tokyonight.nvim",
-    --   branch = "main",
-    -- },
     {
       "catppuccin/nvim",
       name = "catppuccin",
@@ -69,11 +65,9 @@ require("lazy").setup({
       "L3MON4D3/LuaSnip",
       dependencies = { "honza/vim-snippets" },
       -- follow latest release.
-      -- version = "<CurrentMajor>.*",
       -- install jsregexp (optional!).
       build = "make install_jsregexp",
       config = function()
-        -- require("luasnip_snippets.common.snip_utils").setup()
         local ls = require("luasnip")
         require("luasnip.loaders.from_snipmate").lazy_load()
         vim.keymap.set("i", "<c-j>", ls.expand_or_jump)
@@ -114,18 +108,6 @@ require("lazy").setup({
       end,
       event = "InsertEnter",
     },
-    -- {
-    --     "SirVer/ultisnips",
-    --     dependencies = {"quangnguyen30192/cmp-nvim-ultisnips"},
-    --     config = function()
-    --         vim.g.UltiSnipsExpandTrigger = "<c-j>"
-    --         vim.g.UltiSnipsJumpForwardTrigger = "<c-n>"
-    --         vim.g.UltiSnipsJumpBackwardTrigger = "<c-p>"
-    --     end
-    -- },
-    -- {
-    -- 	"airblade/vim-gitgutter",
-    -- },
     {
       "lewis6991/gitsigns.nvim",
       event = "VeryLazy",
@@ -184,11 +166,6 @@ require("lazy").setup({
         end,
       },
     },
-    -- {
-    --   -- for viewing git conflicts
-    --   "akinsho/git-conflict.nvim",
-    --   tag = "v2.1.0",
-    -- },
     {
       "rhysd/conflict-marker.vim",
       config = function()
@@ -216,9 +193,6 @@ require("lazy").setup({
         vim.keymap.set("n", "[x", "<Cmd>ConflictMarkerPrevHunk<CR>")
       end,
     },
-    -- {
-    -- 	"ellisonleao/gruvbox.nvim",
-    -- },
     {
       "windwp/nvim-autopairs",
       event = "InsertEnter",
@@ -226,18 +200,15 @@ require("lazy").setup({
         local npairs = require("nvim-autopairs")
         local Rule = require("nvim-autopairs.rule")
         local cond = require("nvim-autopairs.conds")
-        -- local basic_rule = require('nvim-autopairs.rules.basic')
         npairs.setup({
           fast_wrap = {
             map = "<C-f>",
             chars = { "{", "[", "(", '"', "'", "$" },
           },
         })
-        -- local bracket = basic_rule.bracket_creator(npairs.config)
         npairs.get_rule("'")[1].not_filetypes = { "latex", "tex", "rust" }
         npairs.add_rules({
           Rule("\\{", "\\}", "tex"),
-          -- bracket("{", "}", "tex"):with_pair(cond.not_before_text("\\")):with_move(cond.not_before_text("\\")),
           Rule("$", "$", { "tex", "latex" })
             -- pair only if no backslashes in front
             :with_pair(cond.not_before_text("\\"))
@@ -251,8 +222,6 @@ require("lazy").setup({
             end)
             -- move right when repeating $
             :with_move(cond.not_before_text("\\")),
-          -- disable adding a newline when you press <cr>
-          -- :with_cr(cond.none()),
         })
       end,
     },
@@ -307,28 +276,14 @@ require("lazy").setup({
     },
     {
       "nvimdev/lspsaga.nvim",
-      -- event = "LspAttach",
       cmd = "Lspsaga",
       config = function()
-        -- symbol in winbar text colors
-        -- vim.api.nvim_set_hl(0, "SagaWinbarFileName", { fg = "#c0caf5" })
-        -- vim.api.nvim_set_hl(0, "SagaWinbarFolderName", { fg = "#c0caf5" })
         require("lspsaga").setup({
           symbol_in_winbar = {
             enable = false,
-            -- separator = "  ",
-            -- hide_keyword = true,
-            -- show_file = true,
-            -- folder_level = 2,
-            -- respect_root = false,
-            -- color_mode = true,
           },
           ui = {
             border = "rounded",
-            -- colors = {
-            --     normal_bg = "#1e2021",
-            --     blue = "#83a598"
-            -- },
           },
           code_action = {
             extend_gitsigns = true,
@@ -393,160 +348,10 @@ require("lazy").setup({
             },
           },
           keymap = {
-            -- preset = "cmdlien",
-            -- ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
-            -- ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
-            -- ["<C-p>"] = {},
-            -- ["<C-n>"] = {},
           },
         },
       },
     },
-    -- {
-    --   "hrsh7th/nvim-cmp",
-    --   event = { "InsertEnter", "CmdLineEnter" },
-    --   dependencies = {
-    --     "hrsh7th/cmp-cmdline",
-    --     "hrsh7th/cmp-buffer",
-    --     "hrsh7th/cmp-nvim-lsp",
-    --     "hrsh7th/cmp-omni",
-    --     "petertriho/cmp-git",
-    --     "hrsh7th/cmp-path",
-    --   },
-    --   config = function()
-    --     local has_words_before = function()
-    --       local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-    --       return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
-    --     end
-    --
-    --     local cmp = require("cmp")
-    --     local lspkind = require("lspkind")
-    --     -- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
-    --     cmp.setup({
-    --       formatting = {
-    --         format = lspkind.cmp_format({
-    --           mode = "symbol_text",
-    --         }),
-    --       },
-    --       snippet = {
-    --         -- expand = function(args)
-    --         --     vim.fn["UltiSnips#Anon"](args.body)
-    --         -- end
-    --         expand = function(args)
-    --           require("luasnip").lsp_expand(args.body)
-    --         end,
-    --       },
-    --       -- window = {
-    --       -- 	documentation = cmp.config.window.bordered(),
-    --       -- 	completion = cmp.config.window.bordered(),
-    --       -- },
-    --       mapping = {
-    --         ["<C-Space>"] = cmp.mapping.confirm({
-    --           behavior = cmp.ConfirmBehavior.Insert,
-    --           select = true,
-    --         }),
-    --         ["<Tab>"] = cmp.mapping(function(fallback)
-    --           if cmp.visible() then
-    --             cmp.select_next_item()
-    --           elseif has_words_before() then
-    --             cmp.complete()
-    --           else
-    --             fallback()
-    --           end
-    --         end, { "i", "s" }),
-    --         ["<S-Tab>"] = cmp.mapping(function(fallback)
-    --           if cmp.visible() then
-    --             cmp.select_prev_item()
-    --           else
-    --             fallback()
-    --           end
-    --         end, { "i", "s" }),
-    --         ["<C-e>"] = cmp.mapping.abort(),
-    --         ["<CR>"] = cmp.mapping.confirm({ select = false }),
-    --         ["<C-b>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c" }),
-    --         ["<C-f>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
-    --         ["<Down>"] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }), { "i" }),
-    --         ["<Up>"] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }), { "i" }),
-    --       },
-    --       sources = cmp.config.sources({
-    --         { name = "nvim_lsp" },
-    --         -- {name = "ultisnips"}, -- For ultisnips users.
-    --         { name = "luasnip" },
-    --         { name = "nvim_lsp_signature_help" },
-    --       }, {
-    --         { name = "buffer" },
-    --         { name = "path" },
-    --       }),
-    --     })
-    --
-    --     -- Set configuration for specific filetype.
-    --     cmp.setup.filetype("gitcommit", {
-    --       sources = cmp.config.sources({
-    --         { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-    --       }, {
-    --         { name = "buffer" },
-    --         { name = "path" },
-    --       }),
-    --     })
-    --
-    --     -- tex files use omni
-    --     cmp.setup.filetype("tex", {
-    --       formatting = {
-    --         format = function(entry, vim_item)
-    --           vim_item.menu = ({
-    --             omni = (vim.inspect(vim_item.menu):gsub('%"', "")),
-    --             buffer = "[Buffer]",
-    --             -- formatting for other sources
-    --           })[entry.source.name]
-    --           return vim_item
-    --         end,
-    --       },
-    --       sources = cmp.config.sources({
-    --         { name = "omni" },
-    --         -- {name = "ultisnips"}
-    --         { name = "luasnip" },
-    --       }, {
-    --         { name = "buffer" },
-    --         { name = "path" },
-    --       }),
-    --     })
-    --
-    --     -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
-    --     cmp.setup.cmdline("/", {
-    --       mapping = cmp.mapping.preset.cmdline(),
-    --       sources = {
-    --         { name = "buffer" },
-    --       },
-    --     })
-    --
-    --     -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-    --     cmp.setup.cmdline(":", {
-    --       mapping = cmp.mapping.preset.cmdline(),
-    --       sources = cmp.config.sources({
-    --         { name = "path" },
-    --       }, {
-    --         { name = "cmdline" },
-    --       }),
-    --     })
-    --
-    --     cmp_autopairs = require("nvim-autopairs.completion.cmp")
-    --     cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-    --
-    --     -- local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
-    --   end,
-    -- },
-    -- {
-    --   "ray-x/lsp_signature.nvim",
-    --   event = "InsertEnter",
-    --   opts = function()
-    --     require("lsp_signature").on_attach({
-    --       bind = true,
-    --       handler_opts = {
-    --         border = "rounded",
-    --       },
-    --     })
-    --   end,
-    -- },
     {
       "nvim-treesitter/nvim-treesitter",
       build = ":TSUpdate",
@@ -675,13 +480,6 @@ require("lazy").setup({
         })
       end,
     },
-    -- {
-    --     "vim-autoformat/vim-autoformat",
-    --     config = function()
-    --         vim.g.formatdef_latexindent = '"latexindent -m -"'
-    --     end,
-    --     cmd = {"Autoformat", "AutoformatLine"}
-    -- },
     {
       "akinsho/toggleterm.nvim",
       config = function()
@@ -731,7 +529,6 @@ require("lazy").setup({
         vim.api.nvim_set_hl(0, "TabLineSel", { fg = "#c0caf5", bg = "#1a1b26", bold = true })
         local theme = {
           fill = "TabLineFill",
-          -- fill = { fg='#32302f', bg='#1d2021', style='italic' },
           head = "TabLine",
           current_tab = "TabLineSel",
           tab = "TabLine",
@@ -740,22 +537,6 @@ require("lazy").setup({
           tail = "TabLine",
         }
 
-        -- function darken_color(hex_str)
-        -- 	local factor = 0.55
-        -- 	local r = tonumber(hex_str:sub(2, 3), 16)
-        -- 	local g = tonumber(hex_str:sub(4, 5), 16)
-        -- 	local b = tonumber(hex_str:sub(6, 7), 16)
-        --
-        -- 	r = math.floor(r * factor)
-        -- 	g = math.floor(g * factor)
-        -- 	b = math.floor(b * factor)
-        --
-        -- 	r = math.min(r, 255)
-        -- 	g = math.min(g, 255)
-        -- 	b = math.min(b, 255)
-        --
-        -- 	return string.format("#%02x%02x%02x", r, g, b)
-        -- end
         local themeBg = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID("Normal")), "bg#")
         local themeFill = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(theme.fill)), "bg#")
 
@@ -763,23 +544,14 @@ require("lazy").setup({
           local num_wins = #line.api.get_tab_wins(line.api.get_current_tab())
           local win_no = 0
           return {
-            -- {
-            --   { '  ', hl = theme.head },
-            --   line.sep('', theme.head, theme.fill),
-            -- },
             line.tabs().foreach(function(tab)
               local hl = tab.is_current() and theme.current_tab or theme.tab
               local filename = require("tabby.filename").tail(vim.api.nvim_tabpage_get_win(tab.id))
               local extension = vim.fn.fnamemodify(filename, ":e")
-              -- local fileicon = require'nvim-web-devicons'.get_icon(filename, extension, {default = true})
               local fileicon, color =
                 require("nvim-web-devicons").get_icon_color(filename, extension, { default = true })
-              -- if tab.is_current() then
-              -- 	color = darken_color(color)
-              -- end
               local bgcolor = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), "bg#")
               return {
-                -- line.sep(tab.number() == 1 and "█" or "", hl, theme.fill),
                 {
                   tab.number() == 1 and (tab.is_current() and "█" or "") or "",
                   hl = {
@@ -787,13 +559,10 @@ require("lazy").setup({
                     bg = themeFill,
                   },
                 },
-                -- tab.is_current() and '' or '',
                 tab.number(),
-                -- fileicon,
                 { fileicon, hl = { fg = color, bg = bgcolor } },
                 tab.name(),
                 tab.close_btn(""),
-                -- line.sep("█", hl, theme.fill),
                 line.sep("", hl, theme.fill),
                 hl = hl,
                 margin = " ",
@@ -806,19 +575,12 @@ require("lazy").setup({
               local extension = vim.fn.fnamemodify(filename, ":e")
               local fileicon, color =
                 require("nvim-web-devicons").get_icon_color(filename, extension, { default = true })
-              -- if win.is_current() then
-              -- 	color = darken_color(color)
-              -- end
               local bgcolor = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), "bg#")
               win_no = win_no + 1
-              -- local win_edge = line.sep(win_no == num_wins and "█" or "", hl, theme.fill)
               return {
                 line.sep("", hl, theme.fill),
-                -- win.is_current() and '' or '',
-                -- win.file_icon(),
                 { fileicon, hl = { fg = color, bg = bgcolor } },
                 win.buf_name(),
-                -- line.sep("", hl, theme.fill),
                 {
                   win_no == num_wins and (win.is_current() and "█" or "") or "",
                   hl = {
@@ -830,10 +592,6 @@ require("lazy").setup({
                 margin = " ",
               }
             end),
-            -- {
-            --   line.sep('', theme.tail, theme.fill),
-            --   { '  ', hl = theme.tail },
-            -- },
             hl = theme.fill,
           }
         end)
@@ -845,17 +603,11 @@ require("lazy").setup({
     {
       "lervag/vimtex",
       config = function()
-        -- vim.g.vimtex_view_method = "sioyek"
-        -- vim.g.vimtex_view_sioyek_options = "--execute-command toggle_synctex"
         vim.g.vimtex_view_method = "skim"
-        -- vim.g.vimtex_quickfix_enabled = 0
         vim.g.vimtex_quickfix_mode = 0
 
         vim.g.vimtex_fold_enabled = true
         vim.g.vimtex_compiler_progname = "nvr"
-        -- vim.g.vimtex_compiler_latexmk_engines = {
-        -- 	["_"] = "-xelatex",
-        -- }
         vim.g.vimtex_compiler_latexmk = {
           options = {
             "-shell-escape",
@@ -992,11 +744,9 @@ require("lazy").setup({
         },
       },
       opts = {
-        -- log_level = vim.log.levels.DEBUG,
         formatters_by_ft = {
           lua = { "stylua" },
           python = { "ruff_format", "ruff_fix", "ruff_organize_imports" },
-          -- haskell = { "ormolu" },
           cpp = { "clang-format" },
           c = { "clang-format" },
           tex = { "latexindent" },
@@ -1012,7 +762,6 @@ require("lazy").setup({
           yaml = { "prettier" },
           json = { "prettier" },
           astro = { "prettier" },
-          -- rust = { "rustfmt", lsp_format = "fallback" },
 
           ["_"] = { "trim_whitespace" },
         },
@@ -1038,81 +787,17 @@ require("lazy").setup({
         { "<leader>j", "<Plug>(leap-from-window)" },
       },
     },
-    -- set terminal background color
-    -- { "typicode/bg.nvim", lazy = false }
-    -- {
-    --        --haskell
-    -- 	"mrcjkb/haskell-tools.nvim",
-    -- 	version = "^3", -- Recommended
-    -- 	lazy = false, -- This plugin is already lazy
-    -- },
-    -- ARCHIVED
-    -- {
-    -- 	"jose-elias-alvarez/null-ls.nvim",
-    -- 	config = function()
-    -- 		local null_ls = require("null-ls")
-    -- 		null_ls.setup({
-    -- 			sources = {
-    -- 				null_ls.builtins.formatting.latexindent.with({
-    -- 					extra_args = { "-m" },
-    -- 				}),
-    -- 				null_ls.builtins.formatting.prettier.with({
-    -- 					extra_args = { "--prose-wrap", "always" },
-    -- 				}),
-    -- 				null_ls.builtins.formatting.stylua,
-    -- 				null_ls.builtins.formatting.black,
-    -- 				null_ls.builtins.formatting.isort,
-    -- 				--null_ls.builtins.formatting.clang_format.with({
-    -- 				--	extra_args = {  "--style", "{BasedOnStyle: llvm, IndentWidth: 4}" },
-    -- 				--}),
-    -- 				null_ls.builtins.diagnostics.chktex,
-    -- 				-- null_ls.builtins.code_actions.gitsigns,
-    -- 			},
-    -- 		})
-    -- 		vim.keymap.set({ "n", "v" }, "<leader>af", vim.lsp.buf.format)
-    -- 	end,
-    -- },
   },
-  -- install = { colorscheme = { "tokyonight-night" } },
   install = { colorscheme = { "catppuccin-mocha" } },
 })
 
--- require("gruvbox").setup({
--- 	undercurl = true,
--- 	underline = true,
--- 	bold = true,
--- 	italic = {
--- 		strings = true,
--- 		comments = true,
--- 		operators = false,
--- 		folds = true,
--- 	},
--- 	strikethrough = true,
--- 	invert_selection = true,
--- 	invert_signs = false,
--- 	invert_tabline = false,
--- 	invert_intend_guides = false,
--- 	inverse = true, -- invert background for search, diffs, statuslines and errors
--- 	contrast = "hard", -- can be "hard", "soft" or empty string
--- 	palette_overrides = {},
--- 	overrides = {
---         GitSignsCurrentLineBlame = {fg="#868686"}
---     },
--- 	dim_inactive = false,
--- 	transparent_mode = false,
--- })
-
 vim.cmd.syntax("on")
--- tokyonight colorscheme (defined earlier)
--- vim.cmd.colorscheme("tokyonight-night")
 vim.cmd.colorscheme("catppuccin-mocha")
--- vim.cmd.colorscheme("gruvbox")
 -- no logging
 vim.lsp.log.set_level("off")
 
 local set = vim.opt
 set.encoding = "utf-8"
--- set.autoindent = true
 set.cursorline = true
 set.hidden = true
 set.incsearch = true
@@ -1132,11 +817,7 @@ set.shiftwidth = 4
 -- so that we scroll by screen line
 set.smoothscroll = true
 set.exrc = true
--- set.softtabstop = 4
 set.expandtab = true
--- set.splitbelow = true
--- set.splitright = true
--- set.termguicolors = true
 -- don't refresh screen during macros
 set.lazyredraw = true
 set.wrap = true
@@ -1149,9 +830,6 @@ set.mousescroll = "ver:2,hor:5"
 set.foldmethod = "expr"
 set.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 set.foldenable = false
--- fold text highlighting
--- vim.o.foldtext = ''
--- vim.o.fillchars = 'fold: '
 -- global statusline
 set.laststatus = 3
 
@@ -1179,8 +857,6 @@ vim.api.nvim_create_autocmd({ "BufReadPost" }, {
   end,
 })
 
--- local signs = { Error = "", Warn = "", Hint = "󰌵", Information = "󰋼" }
--- local signs = { Error = "", Warn = "", Hint = "", Information = "" }
 vim.diagnostic.config({
   signs = {
     text = {
@@ -1194,19 +870,6 @@ vim.diagnostic.config({
     prefix = "●",
   },
 })
--- for type, icon in pairs(signs) do
---   local hl = "DiagnosticSign" .. type
---   -- vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
--- end
--- airline use power line fonts
--- vim.g.airline_powerline_fonts = true
-
--- vim.g.UltiSnipsExpandTrigger = '<c-j>'
--- vim.g.UltiSnipsJumpForwardTrigger = '<c-n>'
--- vim.g.UltiSnipsJumpBackwardTrigger = '<c-p>'
-
--- python3 path - change this if version changes
--- vim.g.python3_host_prog = "/opt/homebrew/bin/python3"
 
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
@@ -1290,70 +953,22 @@ local capabilities = {
   },
 }
 -- python
--- lspconfig.pyrefly.setup({
---   capabilities = capabilities,
---   on_attach = function()
---     vim.lsp.inlay_hint.enable(true)
---   end,
--- })
-vim.lsp.config("basedpyright", {
+vim.lsp.config("ty", {
   capabilities = capabilities,
-  cmd = { "basedpyright-langserver", "--stdio" },
   settings = {
-    basedpyright = {
-      analysis = {
-        typeCheckingMode = "standard",
-      },
-    },
+    environment = {
+      python = "python3"
+    }
   },
   on_attach = function()
     vim.lsp.inlay_hint.enable(true)
-  end,
-  --   local underscore_comparator = function(entry1, entry2)
-  --     local w1 = string.sub(entry1:get_word(), 1, 1)
-  --     local w2 = string.sub(entry2:get_word(), 1, 1)
-  --     if w1 == "_" and w2 ~= "_" then
-  --       return false
-  --     end
-  --     if w1 ~= "_" and w2 == "_" then
-  --       return true
-  --     end
-  --     return nil
-  --   end
-  --   local lsp_types = require("cmp.types").lsp
-  --   local parameter_comparator = function(entry1, entry2)
-  --     local kind1 = lsp_types.CompletionItemKind[entry1:get_kind()]
-  --     local kind2 = lsp_types.CompletionItemKind[entry2:get_kind()]
-  --     local p1 = kind1 == "Variable" and entry1:get_completion_item().label:match("%w*=")
-  --     local p2 = kind2 == "Variable" and entry2:get_completion_item().label:match("%w*=")
-  --     if p1 and not p2 then
-  --       return true
-  --     end
-  --     if p2 and not p1 then
-  --       return false
-  --     end
-  --     return nil
-  --   end
-  --   local cmp = require("cmp")
-  --   cmp.setup.filetype("python", {
-  --     sorting = {
-  --       comparators = {
-  --         cmp.config.compare.offset,
-  --         cmp.config.compare.exact,
-  --         cmp.config.compare.recently_used,
-  --         parameter_comparator,
-  --         underscore_comparator,
-  --         cmp.config.compare.sort_text,
-  --         cmp.config.compare.length,
-  --         cmp.config.compare.order,
-  --       },
-  --     },
-  --   })
+  end
 })
-vim.lsp.enable("basedpyright")
+vim.lsp.enable("ty")
 -- javascript
-vim.lsp.config("ts_ls", {
+vim.lsp.config("tsgo", {
   capabilities = capabilities,
+  cmd = {"tsc", "--lsp", "--stdio"},
   settings = {
     javascript = {
       inlayHints = {
@@ -1382,7 +997,7 @@ vim.lsp.config("ts_ls", {
     vim.lsp.inlay_hint.enable(true)
   end,
 })
-vim.lsp.enable("ts_ls")
+vim.lsp.enable("tsgo")
 
 vim.lsp.config("astro", {
   capabilities = capabilities,
@@ -1404,50 +1019,13 @@ vim.lsp.config("clangd", {
   on_attach = function()
     if cpp_first_time then
       require("clangd_extensions").setup({
-        -- inlay_hints = {
-        -- 	inline = true,
-        -- 	show_parameter_hints = true,
-        -- 	parameter_hints_prefix = "← ",
-        -- 	other_hints_prefix = " ",
-        -- },
       })
-      -- cpp files sorting
-      -- local cmp = require("cmp")
-      -- cmp.setup.filetype("cpp", {
-      --   sorting = {
-      --     comparators = {
-      --       cmp.config.compare.offset,
-      --       cmp.config.compare.exact,
-      --       cmp.config.compare.recently_used,
-      --       require("clangd_extensions.cmp_scores"),
-      --       cmp.config.compare.kind,
-      --       cmp.config.compare.sort_text,
-      --       cmp.config.compare.length,
-      --       cmp.config.compare.order,
-      --     },
-      --   },
-      -- })
       cpp_first_time = false
     end
     vim.lsp.inlay_hint.enable(true)
   end,
 })
 vim.lsp.enable("clangd")
-
--- haskell
--- lspconfig.hls.setup({
---   capabilities = capabilities,
---   filetypes = { "haskell", "lhaskell", "cabal" },
--- })
---
-
--- vim.lsp.config("rust_analyzer", {
---   capabilities = capabilities,
---   on_attach = function()
---     vim.lsp.inlay_hint.enable(true)
---   end,
--- })
--- vim.lsp.enable("rust_analyzer")
 
 -- grammar checker for markdown, latex
 local ltex_first_time = true
@@ -1502,19 +1080,6 @@ vim.lsp.config("ltex_plus", {
 })
 vim.lsp.enable("ltex_plus")
 
--- lspconfig.texlab.setup{
---     settings = {
---         texlab = {
---             chktex = {
---                 onEdit = true,
---             },
---             latexindent = {
---                 modifyLineBreaks = true
---             }
---         }
---     }
--- }
-
 -- This is so that ltex would not open in a lspsaga hover window
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "markdown",
@@ -1525,44 +1090,6 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- require("nvim-treesitter.configs").setup({
---   -- A list of parser names, or "all"
---   ensure_installed = { "c", "cpp", "python", "javascript", "html", "css", "lua", "markdown", "markdown_inline" },
---   -- Install parsers synchronously (only applied to `ensure_installed`)
---   sync_install = false,
---   -- Automatically install missing parsers when entering buffer
---   auto_install = true,
---   highlight = {
---     -- `false` will disable the whole extension
---     enable = true,
---     disable = { "latex", "typescript" },
---     -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
---     -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
---     -- the name of the parser)
---     -- list of language that will be disabled
---     -- disable = { "c", "rust" },
---
---     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
---     -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
---     -- Using this option may slow down your editor, and you may see some duplicate highlights.
---     -- Instead of true it can also be a list of languages
---     additional_vim_regex_highlighting = false,
---   },
---   indent = {
---     enable = true,
---     disable = { "latex" },
---   },
--- })
--- local function diff_source()
--- 	local gitsigns = vim.b.gitsigns_status_dict
--- 	if gitsigns then
--- 		return {
--- 			added = gitsigns.added,
--- 			modified = gitsigns.changed,
--- 			removed = gitsigns.removed,
--- 		}
--- 	end
--- end
 local symbols = nil
 function symbols_has()
   if symbols ~= nil then
@@ -1590,7 +1117,6 @@ require("lualine").setup({
     component_separators = { left = "", right = "" },
     section_separators = { left = "", right = "" },
     disabled_filetypes = {
-      -- statusline = { "NvimTree", "packer", "sagaoutline", "undotree", "vimtex-toc", "trouble" },
     },
   },
   sections = {
@@ -1612,7 +1138,6 @@ require("lualine").setup({
 })
 
 -- telescope keymappings
--- local builtin = require("telescope.builtin")
 vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { silent = true })
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { silent = true })
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { silent = true })
@@ -1625,18 +1150,6 @@ vim.keymap.set("n", "<leader>tr", "<cmd>NvimTreeToggle<cr>", { silent = true, no
 
 -- undo tree
 vim.keymap.set("n", "<leader>ut", "<cmd>UndotreeToggle<cr>", { silent = true, noremap = true })
-
--- git conflict
--- require("git-conflict").setup({
---   default_mappings = false,
--- })
--- vim.keymap.set("n", "<leader>co", "<Plug>(git-conflict-ours)")
--- vim.keymap.set("n", "<leader>ct", "<Plug>(git-conflict-theirs)")
--- vim.keymap.set("n", "<leader>cb", "<Plug>(git-conflict-both)")
--- vim.keymap.set("n", "<leader>cB", "<Cmd>GitConflictChooseBase<CR>")
--- vim.keymap.set("n", "<leader>c0", "<Plug>(git-conflict-none)")
--- vim.keymap.set("n", "[x", "<Plug>(git-conflict-prev-conflict)")
--- vim.keymap.set("n", "]x", "<Plug>(git-conflict-next-conflict)")
 
 -- Toogle diagnostics
 local toggle_diagnostics = function()
